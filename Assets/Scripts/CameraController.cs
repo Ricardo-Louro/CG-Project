@@ -3,6 +3,7 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     [SerializeField] private GameObject     player;
+    [SerializeField] private GameObject     effectCamera;
     [SerializeField] private float          mouseSensitivityX;
     [SerializeField] private float          mouseSensitivityY;
     private float                           mouseX = 0f;
@@ -17,7 +18,7 @@ public class CameraController : MonoBehaviour
     {
         ReceiveInput();
         UpdateCamPosition();
-        UpdateCamRotation();
+        UpdateCamsRotations();
     }
 
     private void UpdateCamPosition()
@@ -28,9 +29,10 @@ public class CameraController : MonoBehaviour
                                          playerPos.z);
     }
 
-    private void UpdateCamRotation()
+    private void UpdateCamsRotations()
     {   
         transform.eulerAngles = new Vector3(mouseY, mouseX, 0);
+        effectCamera.transform.eulerAngles = new Vector3(mouseY, mouseX, 0);
     }
 
     private void ReceiveInput()
