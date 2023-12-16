@@ -17,7 +17,7 @@ public class EffectProjection : MonoBehaviour
     private void Start()
     {
         cam = gameObject.GetComponent<Camera>();
-        Gizmos.color = Color.yellow;
+        //Gizmos.color = Color.yellow;
 
         zDistance = cam.farClipPlane;
         yDistance = Mathf.Tan(cam.fieldOfView * Mathf.Deg2Rad /2) * zDistance;
@@ -42,14 +42,25 @@ public class EffectProjection : MonoBehaviour
 
     private Vector3[] CalculateFarCamVertices()
     {
-        Vector3 far_topLeft = closeCamVertices[0] + (-xDistance * transform.right) + (yDistance * transform.up) + (zDistance * transform.forward);
-        Vector3 far_topRight = closeCamVertices[0] + (xDistance * transform.right) + (yDistance * transform.up) + (zDistance * transform.forward);
-        Vector3 far_bottomRight = closeCamVertices[0] + (xDistance * transform.right) + (-yDistance * transform.up) + (zDistance * transform.forward);
-        Vector3 far_bottomLeft = closeCamVertices[0] + (-xDistance * transform.right) + (-yDistance * transform.up) + (zDistance * transform.forward);
+        Vector3 far_topLeft = closeCamVertices[0] + (-xDistance * transform.right)
+                                                  + (yDistance * transform.up)
+                                                  + (zDistance * transform.forward);
+
+        Vector3 far_topRight = closeCamVertices[0] + (xDistance * transform.right)
+                                                   + (yDistance * transform.up)
+                                                   + (zDistance * transform.forward);
+
+        Vector3 far_bottomRight = closeCamVertices[0] + (xDistance * transform.right)
+                                                      + (-yDistance * transform.up)
+                                                      + (zDistance * transform.forward);
+
+        Vector3 far_bottomLeft = closeCamVertices[0] + (-xDistance * transform.right)
+                                                     + (-yDistance * transform.up)
+                                                     + (zDistance * transform.forward);
 
         return new Vector3[4] {far_topLeft, far_topRight, far_bottomRight, far_bottomLeft};
     }
-
+/*
     private void OnDrawGizmos()
     {
         if(closeCamVertices != null && farCamVertices != null)
@@ -61,4 +72,5 @@ public class EffectProjection : MonoBehaviour
                 Gizmos.DrawSphere(vertex, 50f);
         }
     }
+*/
 }
