@@ -73,9 +73,9 @@ public class EffectProjection : MonoBehaviour
     private void Update()
     {
         //Calculates the world position for each vertex on the close plane of the cam
-        CalculateCloseCamVertices();
+        nearVertices = CalculateCloseCamVertices();
         //Calculates the world position for each vertex on the far plane of the cam
-        CalculateFarCamVertices();
+        farVertices = CalculateFarCamVertices();
         //Calculate the planes based on the previously calculated vertices
         planeList = CalculatePlanes();
 
@@ -157,124 +157,165 @@ public class EffectProjection : MonoBehaviour
     }
 
     //Calculates the world position of the vertices on the camera's frustum closer to the player 
-    private void CalculateCloseCamVertices()
+    private Vector3[] CalculateCloseCamVertices()
     {
+        //Converts the point on the top left of the viewport into world coordinates
         near_topLeft = cam.ViewportToWorldPoint(new Vector3(0, 1, cam.nearClipPlane));
+        //Converts the point on the top right of the viewport into world coordinates
         near_topRight = cam.ViewportToWorldPoint(new Vector3(1, 1, cam.nearClipPlane));
+        //Converts the point on the bottom right of the viewport into world coordinates
         near_bottomRight = cam.ViewportToWorldPoint(new Vector3(1, 0, cam.nearClipPlane));
+        //Converts the point on the bottom left of the viewport into world coordinates
         near_bottomLeft = cam.ViewportToWorldPoint(new Vector3(0, 0, cam.nearClipPlane));
 
-        nearVertices = new Vector3[4] {near_topLeft, near_topRight, near_bottomRight, near_bottomLeft};
+        //Return all the converted points as an array of Vector3
+        return new Vector3[4] {near_topLeft, near_topRight, near_bottomRight, near_bottomLeft};
     }
 
-    private void CalculateFarCamVertices()
+    //Calculates the world position of the vertices on the camera's far end
+    private Vector3[] CalculateFarCamVertices()
     {
+        //Transforms the coordinates of the near top left point into the far top left point
         far_topLeft = near_topLeft + (-xDistance * transform.right)
                                    + (yDistance * transform.up)
                                    + (zDistance * transform.forward);
 
+        //Transforms the coordinates of the near top right point into the far top right point
         far_topRight = near_topRight + (xDistance * transform.right)
                                      + (yDistance * transform.up)
                                      + (zDistance * transform.forward);
 
+        //Transforms the coordinates of the near bottom left point into the far bottom left point
         far_bottomRight = near_bottomRight + (xDistance * transform.right)
                                            + (-yDistance * transform.up)
                                            + (zDistance * transform.forward);
 
+        //Transforms the coordinates of the near bottom left point into the far bottom left point
         far_bottomLeft = near_bottomLeft + (-xDistance * transform.right)
                                          + (-yDistance * transform.up)
                                          + (zDistance * transform.forward);
 
-        farVertices = new Vector3[4] {far_topLeft, far_topRight, far_bottomRight, far_bottomLeft};
+        //Return all the converted points as an array of Vector3
+        return new Vector3[4] {far_topLeft, far_topRight, far_bottomRight, far_bottomLeft};
     }
 
+    //Calculates each of the planes utilizing the previously calculated points
     private ICollection<Plane> CalculatePlanes()
     {
+        //Calculates the top plane of the camera's pyramid and stores it in the relevant variable
         topPlane.UpdatePlane(far_topLeft - near_topLeft,
                              near_topRight - near_topLeft,
                              near_topLeft,
                              PlaneOrientation.top_bottom);
 
+        //Debug code to draw the lines that cover the relevant area of the plane
         Debug.DrawLine(near_topLeft, far_topLeft, Color.black);
         Debug.DrawLine(near_topRight, far_topRight, Color.black);
         Debug.DrawLine(near_topLeft, near_topRight, Color.black);
         Debug.DrawLine(far_topLeft, far_topRight, Color.black);
 
+        //Calculates the bot plane of the camera's pyramid and stores it in the relevant variable
         botPlane.UpdatePlane(far_bottomRight - near_bottomRight,
                              near_bottomLeft - near_bottomRight,
                              far_bottomRight,
                              PlaneOrientation.top_bottom);
 
+        //Debug code to draw the lines that cover the relevant area of the plane
         Debug.DrawLine(near_bottomLeft, far_bottomLeft, Color.black);
         Debug.DrawLine(near_bottomRight, far_bottomRight, Color.black);
         Debug.DrawLine(near_bottomLeft, near_bottomRight, Color.black);
         Debug.DrawLine(far_bottomLeft, far_bottomRight, Color.black);
 
+        //Calculates the left plane of the camera's pyramid and stores it in the relevant variable
         leftPlane.UpdatePlane(far_bottomLeft - near_bottomLeft,
                               near_topLeft - near_bottomLeft,
                               near_bottomLeft,
                               PlaneOrientation.left_right);
 
+        //Debug code to draw the lines that cover the relevant area of the plane
         Debug.DrawLine(near_bottomLeft, far_bottomLeft, Color.black);
         Debug.DrawLine(near_topLeft, far_topLeft, Color.black);
         Debug.DrawLine(near_bottomLeft, near_topLeft, Color.black);
         Debug.DrawLine(far_bottomLeft, far_topLeft, Color.black);
 
+        //Calculates the right plane of the camera's pyramid and stores it in the relevant variable
         rightPlane.UpdatePlane(far_topRight - near_topRight,
                                near_bottomRight - near_topRight,
                                near_topRight,
                                PlaneOrientation.left_right);
 
+        //Debug code to draw the lines that cover the relevant area of the plane
         Debug.DrawLine(near_bottomRight, far_bottomRight, Color.black);
         Debug.DrawLine(near_topRight, far_topRight, Color.black);
         Debug.DrawLine(near_bottomRight, near_topRight, Color.black);
         Debug.DrawLine(far_bottomRight, far_topRight, Color.black);
 
+        //Calculates the close plane of the camera's pyramid and stores it in the relevant variable
         closePlane.UpdatePlane(near_bottomRight - near_topRight,
                                near_topLeft - near_topRight,
                                near_bottomRight,
                                PlaneOrientation.close_far);
 
+        //Debug code to draw the lines that cover the relevant area of the plane
         Debug.DrawLine(near_topLeft, near_topRight, Color.black);
         Debug.DrawLine(near_bottomLeft, near_bottomRight, Color.black);
         Debug.DrawLine(near_topLeft, near_bottomLeft, Color.black);
         Debug.DrawLine(near_bottomRight, near_topRight, Color.black);
         
+        //Calculates the far plane of the camera's pyramid and stores it in the relevant variable
         farPlane.UpdatePlane(far_bottomLeft - far_topLeft,
                              far_topRight - far_topLeft,
                              far_bottomLeft,
                              PlaneOrientation.close_far);
         
+        //Debug code to draw the lines that cover the relevant area of the plane
         Debug.DrawLine(far_topLeft, far_topRight, Color.black);
         Debug.DrawLine(far_bottomLeft, far_bottomRight, Color.black);
         Debug.DrawLine(far_topLeft, far_bottomLeft, Color.black);
         Debug.DrawLine(far_bottomRight, far_topRight, Color.black);
 
+        //Returns all the calculated planes inside an array of the type Plane defined in Plane.cs 
         return new Plane[6] {topPlane, botPlane, leftPlane, rightPlane, closePlane, farPlane};
     }
 
+    //Uses the planes parallel to the one who detected the shape to be partly in the camera area to test if it is truly in bounds or not 
     private bool CompareParallelPlanesTests(PlaneOrientation orientation, Shape shape)
     {
+        //Iterate through each pair of parallel planes in the parallel plane dictionary based on the orientation of the plane who flagged the shape as partly in
         foreach(Plane[] planeArray in parallelPlanesDict[orientation])
         {
+            //If one of the parallel planes considers the shape to be fully in and the other to be fully out (the plane is outside of the camera bounds)...
             if((planeArray[0].TestShape(shape, false) == IntersectionState.Fully &
                 planeArray[1].TestShape(shape, false) == IntersectionState.None) |
                (planeArray[0].TestShape(shape, false) == IntersectionState.None &
                 planeArray[1].TestShape(shape, false) == IntersectionState.Fully))
+                {
+                    //...indicate that the result was a false partly in
                     return false;
+                }
         }
+        //If no parallel plane pair considered the shape to be out of bounds, indicate that the result was a true partly in.
         return true;
     }
 
+    //Draw Gizmos for debugging purpose
     private void OnDrawGizmos()
     {
+        //If neither the collection of the close nor far vertices are null
         if(nearVertices != null && farVertices != null)
         {
+            //Iterate through each vertex in the near vertices collection
             foreach(Vector3 vertex in nearVertices)
+            {
+                //Draw a small sphere at the position of each vertex
                 Gizmos.DrawSphere(vertex, 0.01f);
-
+            }
+            //Iterate through each vertex in the far vertices collection
             foreach(Vector3 vertex in farVertices)
+            {
+                //Draw a small sphere at the position of each vertex
                 Gizmos.DrawSphere(vertex, 50f);
+            }
         }
     }
 }
