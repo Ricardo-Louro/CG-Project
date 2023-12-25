@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+//Enum containing all the possible orientations that a plane might have
 public enum PlaneOrientation
 {
     top_bottom,
