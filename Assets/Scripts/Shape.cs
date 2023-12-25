@@ -27,6 +27,14 @@ public class Shape : MonoBehaviour
         renderer.material = newMaterial;
     }
 
+    private void OnDrawGizmos()
+    {
+        foreach(Vector3 vertex in vertices)
+        {
+            Gizmos.DrawSphere(vertex, 0.1f);
+        }
+    }
+
     /*public Shape(ICollection<Vector3> vertices)
     {
         this.vertices = vertices;

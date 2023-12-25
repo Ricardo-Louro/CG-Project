@@ -6,45 +6,53 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Vector3 = UnityEngine.Vector3;
 
+//This class handles the projection phase of the effect
 public class EffectProjection : MonoBehaviour
 {
 
-    [SerializeField] private Material fullyMaterial;
-    [SerializeField] private Material partlyMaterial;
-    [SerializeField] private Material noneMaterial;
+    //Declare materials to replace on the shapes
+    [SerializeField] private Material                   fullyMaterial;
+    [SerializeField] private Material                   partlyMaterial;
+    [SerializeField] private Material                   noneMaterial;
 
-    private ICollection<Vector3> nearVertices = null;
-    private Vector3 near_topLeft;
-    private Vector3 near_topRight;
-    private Vector3 near_bottomRight;
-    private Vector3 near_bottomLeft;
-    private ICollection<Vector3> farVertices = null;
-    private Vector3 far_topLeft;
-    private Vector3 far_topRight;
-    private Vector3 far_bottomRight;
-    private Vector3 far_bottomLeft;
-    private Camera cam;
-    private float zDistance;
-    private float yDistance;
-    private float xDistance;
-    private ICollection<Plane> planeList;
-    private Plane topPlane;
-    private Plane botPlane;
-    private Plane leftPlane;
-    private Plane rightPlane;
-    private Plane closePlane;
-    private Plane farPlane;
-    private Dictionary<PlaneOrientation, Plane[][]> parallelPlanesDict;
+    //Declares variables to store the calculated camera vertices on
+    private ICollection<Vector3>                        nearVertices = null;
+    private Vector3                                     near_topLeft;
+    private Vector3                                     near_topRight;
+    private Vector3                                     near_bottomRight;
+    private Vector3                                     near_bottomLeft;
+    private ICollection<Vector3>                        farVertices = null;
+    private Vector3                                     far_topLeft;
+    private Vector3                                     far_topRight;
+    private Vector3                                     far_bottomRight;
+    private Vector3                                     far_bottomLeft;
 
+    //Declare camera and a few of its measures as variables
+    private Camera                                      cam;
+    private float                                       zDistance;
+    private float                                       yDistance;
+    private float                                       xDistance;
+
+    //Declare variables to store the camera's planes
+    private ICollection<Plane>                          planeList;
+    private Plane                                       topPlane;
+    private Plane                                       botPlane;
+    private Plane                                       leftPlane;
+    private Plane                                       rightPlane;
+    private Plane                                       closePlane;
+    private Plane                                       farPlane;
+    private Dictionary<PlaneOrientation, Plane[][]>     parallelPlanesDict;
+
+    //Runs on the first start where this component is active
     private void Start()
     {
+        //Assign the camera variables into their places so they can be referenced
         cam = gameObject.GetComponent<Camera>();
-        //Gizmos.color = Color.yellow;
-
         zDistance = cam.farClipPlane;
         yDistance = Mathf.Tan(cam.fieldOfView * Mathf.Deg2Rad /2) * zDistance;
         xDistance = Mathf.Tan(Camera.VerticalToHorizontalFieldOfView(cam.fieldOfView, cam.aspect) * Mathf.Deg2Rad /2) * zDistance;
         
+        //Assign each plane variable with a new instance of a plane which can then be modified
         topPlane = new Plane();
         botPlane = new Plane();
         leftPlane = new Plane();
@@ -52,6 +60,7 @@ public class EffectProjection : MonoBehaviour
         closePlane = new Plane();
         farPlane = new Plane();
 
+        //Initialize the parallel plane dictionary with the relevant values which will be used to test the shapes later on
         parallelPlanesDict = new Dictionary<PlaneOrientation, Plane[][]>
         {
             { PlaneOrientation.top_bottom, new Plane[2][]{new Plane[2] { leftPlane, rightPlane }, new Plane[2] { closePlane, farPlane }}},
@@ -60,49 +69,94 @@ public class EffectProjection : MonoBehaviour
         };
     }
 
+    //Runs every single frame after the first one when this object is active
     private void Update()
     {
+        //Calculates the world position for each vertex on the close plane of the cam
         CalculateCloseCamVertices();
+        //Calculates the world position for each vertex on the far plane of the cam
         CalculateFarCamVertices();
+        //Calculate the planes based on the previously calculated vertices
         planeList = CalculatePlanes();
 
+        //Iterate through every shape in the scene to test if they're inside the camera planes
         foreach(Shape shape in Shape.shapeList)
         {
+            //Declare local variable which serves on the tests to see if the shape is completely inside the planes 
             bool fullyInside = true;
+            //Declare local variable which serves on the tests to see if the shape is partially inside the planes
             bool partlyOutside = false;
+
+            //Iterate through every plane of the camera (top, bot, left, right, close, far)
             foreach(Plane plane in planeList)
             {
+                //See what the intersection state between the current plane and shape is (fully inside, fully outside or partially inside)
                 IntersectionState state = plane.TestShape(shape, true);
+
+                //If the shape is not fully inside with one of the planes...
                 if(state != IntersectionState.Fully)
-                    fullyInside = false;
+                {
+                    //...set the local variable as false to symbolize that the shape cannot be considered fully inside
+                    fullyInside = false;   
+                }
+                //If the shape is considered partially inside with one of the planes...
                 if(state == IntersectionState.Partly)
+                {
+                    //...set the local variable as true to symbolize that the shape was considered partly inside by at least one of the planes
                     partlyOutside = true;
+                }
             }
 
+            //If at the end of testing every plane, the shape was considered fully inside by all of them...
             if(fullyInside)
             {
+                //...switch the shape's material for the fully inside one.
                 shape.SwitchMaterial(fullyMaterial);
             }
+            //If at the end of testing every plane, at least one of them considered the shape to be only partly inside...
             else if(partlyOutside)
             {
+                //...set a local variable to see if the object is considered to be inside the camera area (partly inside can be triggered for objects out of the camera area)
                 bool inBounds = true;
+                
+                //Iterate through every orientation whose planes considered the shape to be partly inside
                 foreach(PlaneOrientation orientation in shape.partialPlanesOrientation)
                 {
+                    //Test the shape to see if its not outside of the camera area
                     inBounds = CompareParallelPlanesTests(orientation, shape);
+                    //If it isn't...
                     if(!inBounds)
+                    {
+                        //Break out of the loop
                         break;
+                    }
                 }
+                //Clear the orientation list after the tests so it can be reused on future cases
                 shape.partialPlanesOrientation = new List<PlaneOrientation>{};
+
+                //If the shape was determined to have remained inside the camera's bounds for all the tests (and as such is a true partly inside result)
                 if(inBounds)
+                {
+                    //Replace the material of the shape with the partly inside material
                     shape.SwitchMaterial(partlyMaterial);
+                }
+                //If the shape was determined to be outside of the camera's bounds on a test (and as such is a false partly inside result)
                 else
+                {
+                    //Replace the material of the shape with the fully outside material
                     shape.SwitchMaterial(noneMaterial);
+                }
             }
+            //If the shape was not considered to be fully inside nor partially inside (it is fully outside)
             else
+            {
+                //Replace the material of the shape with the fully outside material
                 shape.SwitchMaterial(noneMaterial);
+            }
         }
     }
 
+    //Calculates the world position of the vertices on the camera's frustum closer to the player 
     private void CalculateCloseCamVertices()
     {
         near_topLeft = cam.ViewportToWorldPoint(new Vector3(0, 1, cam.nearClipPlane));

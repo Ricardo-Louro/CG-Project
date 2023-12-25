@@ -3,6 +3,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private GameObject     mainCamera;
+    [SerializeField] private GameObject     elementHUD;
     [SerializeField] private float          moveSpeed;
     [SerializeField] private float          jumpSpeed;
     private Rigidbody                       rb;
@@ -10,13 +11,15 @@ public class PlayerController : MonoBehaviour
     private float                           verticalInput;
     public bool                             Grounded;
     private bool                            jumpQueued = false;
+
+    public bool                            pointingCam {get; private set;} = false;
     
-    void Start()
+    private void Start()
     {
         rb = gameObject.GetComponent<Rigidbody>();
     }
 
-    void Update()
+    private void Update()
     {
         ReceiveInput();
         Rotate();
@@ -33,7 +36,19 @@ public class PlayerController : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
 
         if(Input.GetKeyDown(KeyCode.Space) && Grounded)
+        {
             jumpQueued = true;
+        }
+        if(Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            pointingCam = true;
+            ActivationHUD(true, elementHUD);
+        }
+        if(Input.GetKeyUp(KeyCode.Mouse1))
+        {
+            pointingCam = false;
+            ActivationHUD(false, elementHUD);
+        }
     }
 
     private void Rotate()
@@ -60,5 +75,10 @@ public class PlayerController : MonoBehaviour
                 rb.velocity = new Vector3(rb.velocity.x, jumpSpeed, rb.velocity.z);
             }
         }
+    }
+
+    private void ActivationHUD(bool activation, GameObject HUD)
+    {
+        HUD.SetActive(activation);
     }
 }
