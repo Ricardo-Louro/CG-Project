@@ -1,3 +1,4 @@
+//Declare relevant namespaces
 using UnityEngine;
 
 //Receives the inputs from the player and handles the movement of the player's character

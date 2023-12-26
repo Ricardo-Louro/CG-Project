@@ -1,3 +1,4 @@
+//Declare relevant namespaces
 using UnityEngine;
 
 //Defines a Plane class to be utilized and created with the necessary conditions for the effect to be accomplished

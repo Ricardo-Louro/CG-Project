@@ -1,3 +1,4 @@
+//Declare relevant namespaces
 using UnityEngine;
 
 //Controls the cameras' movement and rotation so that the player can see

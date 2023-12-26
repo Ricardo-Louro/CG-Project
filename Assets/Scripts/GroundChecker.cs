@@ -1,3 +1,4 @@
+//Declare relevant namespaces
 using UnityEngine;
 
 //Class will check if the player is grounded or not and return this information to the PlayerController

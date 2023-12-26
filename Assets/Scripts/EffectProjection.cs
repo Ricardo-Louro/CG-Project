@@ -1,9 +1,6 @@
-using System;
-using System.Collections;
+//Declare relevant namespaces
 using System.Collections.Generic;
-using System.Numerics;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Vector3 = UnityEngine.Vector3;
 
 //This class handles the projection phase of the effect

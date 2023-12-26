@@ -1,3 +1,4 @@
+//Declare relevant namespaces
 using System.Collections.Generic;
 using UnityEngine;
 
