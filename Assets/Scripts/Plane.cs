@@ -14,7 +14,7 @@ public class Plane
     //Method to update the plane depending on the new values it receives every frame
     public void UpdatePlane(Vector3 a, Vector3 b, Vector3 point, PlaneOrientation planeOrientation)
     {
-        //Set the normal vector as the a normalized cross between two specific points of the plane 
+        //Set the normal vector as the normalized cross between two specific points of the plane 
         normal = Vector3.Cross(a,b).normalized;
 
         //Calculate the d according to the relevant equation
