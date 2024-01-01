@@ -1,4 +1,5 @@
 //Declare relevant namespaces
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
@@ -6,6 +7,9 @@ using Vector3 = UnityEngine.Vector3;
 //This class handles the projection phase of the effect
 public class EffectProjection : MonoBehaviour
 {
+    //Declare PlayerController to access its triggers for actions
+    [SerializeField] private PlayerController           playerController;
+    private ICollection<Shape>                          partialShapes = new HashSet<Shape>();
 
     //Declare materials to replace on the shapes
     [SerializeField] private Material                   fullyMaterial;
@@ -117,10 +121,10 @@ public class EffectProjection : MonoBehaviour
                 bool inBounds = true;
                 
                 //Iterate through every orientation whose planes considered the shape to be partly inside
-                foreach(PlaneOrientation orientation in shape.partialPlanesOrientation)
+                foreach(Plane plane in shape.partialPlanes)
                 {
                     //Test the shape to see if its not outside of the camera area
-                    inBounds = CompareParallelPlanesTests(orientation, shape);
+                    inBounds = CompareParallelPlanesTests(plane.orientation, shape);
                     //If it isn't...
                     if(!inBounds)
                     {
@@ -128,14 +132,14 @@ public class EffectProjection : MonoBehaviour
                         break;
                     }
                 }
-                //Clear the orientation list after the tests so it can be reused on future cases
-                shape.partialPlanesOrientation = new List<PlaneOrientation>{};
 
                 //If the shape was determined to have remained inside the camera's bounds for all the tests (and as such is a true partly inside result)
                 if(inBounds)
                 {
+                    partialShapes.Add(shape);
                     //Replace the material of the shape with the partly inside material
                     shape.SwitchMaterial(partlyMaterial);
+
                 }
                 //If the shape was determined to be outside of the camera's bounds on a test (and as such is a false partly inside result)
                 else
@@ -150,6 +154,12 @@ public class EffectProjection : MonoBehaviour
                 //Replace the material of the shape with the fully outside material
                 shape.SwitchMaterial(noneMaterial);
             }
+        }
+        foreach(Shape shape in partialShapes)
+        {
+            shape.CalculateIntersectionVertices();
+            //Clear the orientation list after the tests so it can be reused on future cases
+            shape.partialPlanes = new List<Plane>{};
         }
     }
 
@@ -270,6 +280,14 @@ public class EffectProjection : MonoBehaviour
         Debug.DrawLine(far_bottomLeft, far_bottomRight, Color.black);
         Debug.DrawLine(far_topLeft, far_bottomLeft, Color.black);
         Debug.DrawLine(far_bottomRight, far_topRight, Color.black);
+
+        Shape.planes.Clear();
+        Shape.planes.Add(topPlane);
+        Shape.planes.Add(botPlane);
+        Shape.planes.Add(leftPlane);
+        Shape.planes.Add(rightPlane);
+        Shape.planes.Add(closePlane);
+        Shape.planes.Add(farPlane);
 
         //Returns all the calculated planes inside an array of the type Plane defined in Plane.cs 
         return new Plane[6] {topPlane, botPlane, leftPlane, rightPlane, closePlane, farPlane};

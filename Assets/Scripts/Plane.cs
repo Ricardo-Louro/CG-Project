@@ -7,9 +7,9 @@ public class Plane
     //Plane Orientation variable which is utilized to find this plane's parallel planes
     public PlaneOrientation orientation {get; private set;}
     //The normal vector of this plane utilized to calculate the position of any point relative to the plane
-    private Vector3 normal;
+    public Vector3 normal {get; private set;}
     //Float value utilized for the comparison between a point and the plane
-    private float d;
+    public float d {get; private set;}
 
     //Method to update the plane depending on the new values it receives every frame
     public void UpdatePlane(Vector3 a, Vector3 b, Vector3 point, PlaneOrientation planeOrientation)
@@ -25,6 +25,12 @@ public class Plane
         //Set the plane's orientation
         orientation = planeOrientation; 
     }
+
+    //Plane equation: (normal.X * x) + (normal.Y * y) + (normal.Z * z) + d = 0
+
+
+
+
 
     //Tests the relation between a shape and a plane to see whether it's fully in, partially in or fully out of the camera according to said plane
     public IntersectionState TestShape(Shape shape, bool storeOrientation)
@@ -64,7 +70,7 @@ public class Plane
             if(storeOrientation)
             {
                 //...store the plane's orientation within the shape
-                shape.partialPlanesOrientation.Add(orientation);
+                shape.partialPlanes.Add(this);
             }
             //...return the Intersection State between the plane and the shape are partly inside
             return IntersectionState.Partly;
@@ -81,5 +87,27 @@ public class Plane
             //...return the Intersection State between the plane and the shape as fully outside
             return IntersectionState.None;
         }
+    }
+
+    public bool TestVertex(Vector3 vertex)
+    {
+                    //Utilize the equation to compare said vertex to the plane
+            float comparator = (normal.x * vertex.x)
+                             + (normal.y * vertex.y)
+                             + (normal.z * vertex.z)
+                             - d;
+
+            //If said vertex is within the desired area...
+            if(comparator < 0)
+            {
+                //...return true
+                return true;
+            }
+            //If said vertex is outside the desired area...
+            else
+            {
+                //...return false
+                return false;
+            }
     }
 }
