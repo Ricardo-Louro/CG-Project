@@ -149,13 +149,13 @@ Once this was done, I define the normal vector by obtaining the normalized cross
 
 Afterwards, I decompose the previous equation to obtain the a value for d utilizing the previously obtained normal vector and a point contained within the plane.
 
-d = -((normal.x * point.x)
+**d** = -((normal.x * point.x)
     + (normal.y * point.y)
     + (normal.z * point.z));
 
 Now I am able to pick any point (x,y,z) and utilizing the equation where the normal is (a,b,c), I can obtain the comparator value:
 
-float comparator = (normal.x * vertex.x)
+**float comparator** = (normal.x * vertex.x)
                  + (normal.y * vertex.y)
                  + (normal.z * vertex.z)
                  + d;
