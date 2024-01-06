@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     //Declare references to other GameObjects/Components so we may refer to them in this script
     [SerializeField] private GameObject     mainCamera;
+    [SerializeField] private GameObject     effectCamera;
     [SerializeField] private GameObject     elementHUD;
     private Rigidbody                       rb;
     
@@ -63,7 +64,9 @@ public class PlayerController : MonoBehaviour
             //...set the pointing camera flag as true
             pointingCam = true;
             //...activate the pointing camera HUD elements
-            ActivationHUD(true, elementHUD);
+            ActivateObject(true, elementHUD);
+            //...activate the effect camera
+            ActivateObject(true, effectCamera);
         }
         //If the player released the right mouse button...
         else if(Input.GetKeyUp(KeyCode.Mouse1))
@@ -71,7 +74,9 @@ public class PlayerController : MonoBehaviour
             //...set the pointing camera flag as false
             pointingCam = false;
             //...deactivate the pointing camera HUD elements
-            ActivationHUD(false, elementHUD);
+            ActivateObject(false, elementHUD);
+            //...deactivate the effect camera
+            ActivateObject(false, effectCamera);
         }
     }
 
@@ -114,10 +119,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //Activates and deactivates HUD elements
-    private void ActivationHUD(bool activation, GameObject HUD)
+    //Activates and deactivates elements
+    private void ActivateObject(bool activation, GameObject obj)
     {
         //Set the HUD elements' state as active/disabled according to the provided bool
-        HUD.SetActive(activation);
+        obj.SetActive(activation);
     }
 }

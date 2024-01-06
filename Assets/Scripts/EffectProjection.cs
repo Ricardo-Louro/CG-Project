@@ -12,6 +12,7 @@ public class EffectProjection : MonoBehaviour
     private ICollection<Shape>                          partialShapes = new HashSet<Shape>();
 
     //Declare materials to replace on the shapes
+    [SerializeField] private Material                   defaultMaterial;
     [SerializeField] private Material                   fullyMaterial;
     [SerializeField] private Material                   partlyMaterial;
     [SerializeField] private Material                   noneMaterial;
@@ -49,7 +50,7 @@ public class EffectProjection : MonoBehaviour
     {
         //Assign the camera variables into their places so they can be referenced
         cam = gameObject.GetComponent<Camera>();
-        zDistance = cam.farClipPlane;
+        zDistance = cam.farClipPlane - cam.nearClipPlane;
         yDistance = Mathf.Tan(cam.fieldOfView * Mathf.Deg2Rad /2) * zDistance;
         xDistance = Mathf.Tan(Camera.VerticalToHorizontalFieldOfView(cam.fieldOfView, cam.aspect) * Mathf.Deg2Rad /2) * zDistance;
         
@@ -73,93 +74,96 @@ public class EffectProjection : MonoBehaviour
     //Runs every single frame after the first one when this object is active
     private void Update()
     {
-        //Calculates the world position for each vertex on the close plane of the cam
-        nearVertices = CalculateCloseCamVertices();
-        //Calculates the world position for each vertex on the far plane of the cam
-        farVertices = CalculateFarCamVertices();
-        //Calculate the planes based on the previously calculated vertices
-        planeList = CalculatePlanes();
-
-        //Iterate through every shape in the scene to test if they're inside the camera planes
-        foreach(Shape shape in Shape.shapeList)
+        if(playerController.pointingCam)
         {
-            //Declare local variable which serves on the tests to see if the shape is completely inside the planes 
-            bool fullyInside = true;
-            //Declare local variable which serves on the tests to see if the shape is partially inside the planes
-            bool partlyOutside = false;
+            //Calculates the world position for each vertex on the close plane of the cam
+            nearVertices = CalculateCloseCamVertices();
+            //Calculates the world position for each vertex on the far plane of the cam
+            farVertices = CalculateFarCamVertices();
+            //Calculate the planes based on the previously calculated vertices
+            planeList = CalculatePlanes();
 
-            //Iterate through every plane of the camera (top, bot, left, right, close, far)
-            foreach(Plane plane in planeList)
+            //Iterate through every shape in the scene to test if they're inside the camera planes
+            foreach(Shape shape in Shape.shapeList)
             {
-                //See what the intersection state between the current plane and shape is (fully inside, fully outside or partially inside)
-                IntersectionState state = plane.TestShape(shape, true);
+                //Declare local variable which serves on the tests to see if the shape is completely inside the planes 
+                bool fullyInside = true;
+                //Declare local variable which serves on the tests to see if the shape is partially inside the planes
+                bool partlyOutside = false;
 
-                //If the shape is not fully inside with one of the planes...
-                if(state != IntersectionState.Fully)
+                //Iterate through every plane of the camera (top, bot, left, right, close, far)
+                foreach(Plane plane in planeList)
                 {
-                    //...set the local variable as false to symbolize that the shape cannot be considered fully inside
-                    fullyInside = false;   
-                }
-                //If the shape is considered partially inside with one of the planes...
-                if(state == IntersectionState.Partly)
-                {
-                    //...set the local variable as true to symbolize that the shape was considered partly inside by at least one of the planes
-                    partlyOutside = true;
-                }
-            }
+                    //See what the intersection state between the current plane and shape is (fully inside, fully outside or partially inside)
+                    IntersectionState state = plane.TestShape(shape, true);
 
-            //If at the end of testing every plane, the shape was considered fully inside by all of them...
-            if(fullyInside)
-            {
-                //...switch the shape's material for the fully inside one.
-                shape.SwitchMaterial(fullyMaterial);
-            }
-            //If at the end of testing every plane, at least one of them considered the shape to be only partly inside...
-            else if(partlyOutside)
-            {
-                //...set a local variable to see if the object is considered to be inside the camera area (partly inside can be triggered for objects out of the camera area)
-                bool inBounds = true;
-                
-                //Iterate through every orientation whose planes considered the shape to be partly inside
-                foreach(Plane plane in shape.partialPlanes)
-                {
-                    //Test the shape to see if its not outside of the camera area
-                    inBounds = CompareParallelPlanesTests(plane.orientation, shape);
-                    //If it isn't...
-                    if(!inBounds)
+                    //If the shape is not fully inside with one of the planes...
+                    if(state != IntersectionState.Fully)
                     {
-                        //Break out of the loop
-                        break;
+                        //...set the local variable as false to symbolize that the shape cannot be considered fully inside
+                        fullyInside = false;   
+                    }
+                    //If the shape is considered partially inside with one of the planes...
+                    if(state == IntersectionState.Partly)
+                    {
+                        //...set the local variable as true to symbolize that the shape was considered partly inside by at least one of the planes
+                        partlyOutside = true;
                     }
                 }
 
-                //If the shape was determined to have remained inside the camera's bounds for all the tests (and as such is a true partly inside result)
-                if(inBounds)
+                //If at the end of testing every plane, the shape was considered fully inside by all of them...
+                if(fullyInside)
                 {
-                    partialShapes.Add(shape);
-                    //Replace the material of the shape with the partly inside material
-                    shape.SwitchMaterial(partlyMaterial);
-
+                    //...switch the shape's material for the fully inside one.
+                    shape.SwitchMaterial(fullyMaterial);
                 }
-                //If the shape was determined to be outside of the camera's bounds on a test (and as such is a false partly inside result)
+                //If at the end of testing every plane, at least one of them considered the shape to be only partly inside...
+                else if(partlyOutside)
+                {
+                    //...set a local variable to see if the object is considered to be inside the camera area (partly inside can be triggered for objects out of the camera area)
+                    bool inBounds = true;
+                    
+                    //Iterate through every orientation whose planes considered the shape to be partly inside
+                    foreach(Plane plane in shape.partialPlanes)
+                    {
+                        //Test the shape to see if its not outside of the camera area
+                        inBounds = CompareParallelPlanesTests(plane.orientation, shape);
+                        //If it isn't...
+                        if(!inBounds)
+                        {
+                            //Break out of the loop
+                            break;
+                        }
+                    }
+
+                    //If the shape was determined to have remained inside the camera's bounds for all the tests (and as such is a true partly inside result)
+                    if(inBounds)
+                    {
+                        partialShapes.Add(shape);
+                        //Replace the material of the shape with the partly inside material
+                        shape.SwitchMaterial(partlyMaterial);
+
+                    }
+                    //If the shape was determined to be outside of the camera's bounds on a test (and as such is a false partly inside result)
+                    else
+                    {
+                        //Replace the material of the shape with the fully outside material
+                        shape.SwitchMaterial(noneMaterial);
+                    }
+                }
+                //If the shape was not considered to be fully inside nor partially inside (it is fully outside)
                 else
                 {
                     //Replace the material of the shape with the fully outside material
                     shape.SwitchMaterial(noneMaterial);
                 }
             }
-            //If the shape was not considered to be fully inside nor partially inside (it is fully outside)
-            else
+            foreach(Shape shape in partialShapes)
             {
-                //Replace the material of the shape with the fully outside material
-                shape.SwitchMaterial(noneMaterial);
+                shape.CalculateIntersectionVertices();
+                //Clear the orientation list after the tests so it can be reused on future cases
+                shape.partialPlanes = new List<Plane>{};
             }
-        }
-        foreach(Shape shape in partialShapes)
-        {
-            shape.CalculateIntersectionVertices();
-            //Clear the orientation list after the tests so it can be reused on future cases
-            shape.partialPlanes = new List<Plane>{};
         }
     }
 
