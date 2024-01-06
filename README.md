@@ -51,8 +51,6 @@ Afterwards, the other end of the pyramid, its base is once again projected onwar
 
 Only after this phase has concluded is the game allowed to render the scene so that the effect is seamless and complete.
 
---
-
 # 2. The Implementation
 
 This section will detail the ideas behind my version of this effect’s implementation. Although there were some issues to be detailed in this section which prevented me from completing the task, I will be detailing the theory and my ideas on the implementation whether they were successfully achieved or not.
@@ -70,13 +68,13 @@ This method receives a Vector3 where the values (x,y,z) represent the following:
 
 Considering that we know the z distance we need is the camera’s nearClipPlane property, we can represent the vertices on the near end of the camera as follows:
 
-- top_left_close: camera.ViewportToWorldPoint(new Vector3(0, 1, camera.nearClipPlane)
+- **top_left_close:** camera.ViewportToWorldPoint(new Vector3(0, 1, camera.nearClipPlane)
 
-- top_right_close: camera.ViewportToWorldPoint(new Vector3(1, 1, camera.nearClipPlane)
+- **top_right_close:** camera.ViewportToWorldPoint(new Vector3(1, 1, camera.nearClipPlane)
 
-- bot_left_close: camera.ViewportToWorldPoint(new Vector3(0, 0, camera.nearClipPlane)
+- **bot_left_close:** camera.ViewportToWorldPoint(new Vector3(0, 0, camera.nearClipPlane)
 
-- bot_right_close: camera.ViewportToWorldPoint(new Vector3(1, 0, camera.nearClipPlane)
+- **bot_right_close:** camera.ViewportToWorldPoint(new Vector3(1, 0, camera.nearClipPlane)
 
 Now that we have these vertices, we need to calculate the ones at the end of the camera area.
 
@@ -102,28 +100,28 @@ This equation also allows us to calculate the yDistance by replacing the value o
 
 As such, we were able to calculate these values as follows:
 
-- zDistance = cam.farClipPlane - cam.nearClipPlane;
+- **zDistance** = cam.farClipPlane - cam.nearClipPlane;
 
-- yDistance = Mathf.Tan(cam.fieldOfView * Mathf.Deg2Rad /2) * zDistance;
+- **yDistance** = Mathf.Tan(cam.fieldOfView * Mathf.Deg2Rad /2) * zDistance;
 
-- xDistance = Mathf.Tan(Camera.VerticalToHorizontalFieldOfView(cam.fieldOfView, cam.aspect) * Mathf.Deg2Rad /2) * zDistance;
+- **xDistance** = Mathf.Tan(Camera.VerticalToHorizontalFieldOfView(cam.fieldOfView, cam.aspect) * Mathf.Deg2Rad /2) * zDistance;
 
 It is important to note that the Mathf.Tan function receives the degrees in radians while the fieldOfView properties provided by the camera are in degrees. As such, it was necessary to multiply them by Mathf.Deg2Rad to ensure that the equation functioned properly.
 Now that we have these values, we were able to calculate the vertices on the far end of the camera area by transforming the vertices on the near end of it utilizing their previously referred orientation.
 
-- far_topLeft = near_topLeft + (-xDistance * transform.right)
+- **far_topLeft** = near_topLeft + (-xDistance * transform.right)
                              + (yDistance * transform.up)
                              + (zDistance * transform.forward);
 
-- far_topRight = near_topRight + (xDistance * transform.right)
+- **far_topRight** = near_topRight + (xDistance * transform.right)
                                + (yDistance * transform.up)
                                + (zDistance * transform.forward);
 
-- far_bottomRight = near_bottomRight + (xDistance * transform.right)
+- **far_bottomRight** = near_bottomRight + (xDistance * transform.right)
                                      + (-yDistance * transform.up)
                                      + (zDistance * transform.forward);
 
-- far_bottomLeft = near_bottomLeft + (-xDistance * transform.right)
+- **far_bottomLeft** = near_bottomLeft + (-xDistance * transform.right)
                                    + (-yDistance * transform.up)
                                    + (zDistance * transform.forward);
 
