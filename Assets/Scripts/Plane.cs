@@ -18,9 +18,9 @@ public class Plane
         normal = Vector3.Cross(a,b).normalized;
 
         //Calculate the d according to the relevant equation
-        d = normal.x * point.x
-          + normal.y * point.y
-          + normal.z * point.z;
+        d = -(normal.x * point.x
+            + normal.y * point.y
+            + normal.z * point.z);
         
         //Set the plane's orientation
         orientation = planeOrientation; 
@@ -47,7 +47,7 @@ public class Plane
             float comparator = (normal.x * vertex.x)
                              + (normal.y * vertex.y)
                              + (normal.z * vertex.z)
-                             - d;
+                             + d;
 
             //If said vertex is within the desired area...
             if(comparator < 0)
