@@ -211,3 +211,5 @@ If the t value is within 0 and 1, then it means that the point is within the lin
 Unfortunately, I was unable to proceed after this point as there was an issue with this process which I was unable to correct or discover what seems to have been the issue. The detection of these intersection points was faulty and did not work.
 
 Due to this, I was unable to proceed from this point onwards.
+
+As such, I would recommend that this project be ran through the Unity Editor rather than a build as the Debug options allow a better insight into the inner workings of the implemented properties and effects which were not yet finalized.
